@@ -1,0 +1,26 @@
+<!-- from https://codelabs.developers.google.com/codelabs/tensorflowjs-teachablemachine-codelab/index.html#6 -->
+<html>
+  <head>
+    <!-- Load the latest version of TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+  </head>
+  <body>
+    <h1>Use camera video stream</h1>
+    <div id="console"></div>
+    <video autoplay playsinline muted id="webcam" width="224" height="224"></video>
+    <br><br>
+    <h1>Load image</h1>
+    <!-- load phone camera -->
+    <input type="file" accept="image/*" capture="camera">
+    <input type="file" accept="video/*" capture="camera">
+
+    <h1>Classifier image</h1>
+    <p>based on https://towardsdatascience.com/deploying-an-image-classifier-using-javascript-84da1480b3a4</p>
+    <img src="img-test.png" width="240" height="auto">
+    <!-- Load index.js after the content of the page -->
+    <script src="classifier.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>
