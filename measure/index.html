@@ -1,26 +1,58 @@
+<!DOCTYPE html>
 <!-- from https://codelabs.developers.google.com/codelabs/tensorflowjs-teachablemachine-codelab/index.html#6 -->
 <html>
   <head>
     <!-- Load the latest version of TensorFlow.js -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+
+    <!-- <style media="screen">
+      html, body {background-color: black; color: white;}
+      .title, .subtitle {color: white;}
+    </style> -->
   </head>
   <body>
-    <h1>Use camera video stream</h1>
-    <div id="console"></div>
-    <video autoplay playsinline muted id="webcam" width="224" height="224"></video>
-    <br><br>
-    <h1>Load image</h1>
-    <!-- load phone camera -->
-    <input type="file" accept="image/*" capture="camera">
-    <input type="file" accept="video/*" capture="camera">
+    <section class="section">
+      <div class="container">
+        <h1 class="title">ngl-measure alpha0.1</h1>
+        <p>Measure SSS using camera. Alpha version. Classify image into three state {high/medium/low}.</p>
+        <p>All the processing is done on the client side, i.e., without sending images to a server.</p>
+        <br><br>
 
-    <h1>Classifier image</h1>
-    <p>based on https://towardsdatascience.com/deploying-an-image-classifier-using-javascript-84da1480b3a4</p>
-    <img src="img-test.png" width="240" height="auto">
-    <!-- Load index.js after the content of the page -->
-    <script src="classifier.js"></script>
-    <script src="index.js"></script>
+        <h2 class="subtitle">a. realtime measurement</h2>
+        <video autoplay playsinline muted id="webcam" width="255" height="255"></video>
+        <div id="console"></div>
+        <br><br>
+
+        <h2 class="subtitle">b. measure from image #TODO</h2>
+        <!-- load phone camera -->
+        <input type="file" accept="image/*" capture="camera">
+        <!-- <input type="file" accept="video/*" capture="camera"> -->
+
+        <!-- <h2 class="subtitle">Classifier image</h2>
+        <p>based on https://towardsdatascience.com/deploying-an-image-classifier-using-javascript-84da1480b3a4</p>
+        <img src="img-test.png" width="240" height="auto"> -->
+
+        <h1>Webcam Image classification using MobileNet</h1>
+          <p>
+            The MobileNet model labeled this as <span id="result">...</span>
+            <br />with a confidence of <span id="probability">...</span>.
+          </p>
+          <video id="video" width="640" height="480" autoplay></video>
+          <script src="sketch.js"></script>
+<!--
+        <script>
+        console.log('ml5 version:', ml5.version);
+        const classifier = ml5.imageClassifier('path/to/custom/model.json', modelReady);
+        </script> -->
+
+        <!-- Load index.js after the content of the page -->
+        <!-- <script src="classifier.js"></script> -->
+        <script src="index.js"></script>
+      </div>
+    </section>
   </body>
 </html>
