@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+      font-family: Montserrat, Verdana;
+      color: white;
+    }
+    video {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 1;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      transform: translate(-50%, -50%);
+    }
+    .top {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 25px;
+      z-index: 2;
+      /* display: flex; */
+      /* justify-content: left; */
+      /* background-color: red; */
+    }
+    .top p, .bottom p {
+      opacity: 0.7;
+    }
+    .bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 25px;
+      z-index: 2;
+      /* display: flex;
+      justify-content: center; */
+      /* background-color: red; */
+    }
+    button {
+      background-color: white;
+      /* opacity: 0.7; */
+      /* color: white; */
+      width: 100%;
+      border-radius: 30px;
+      border: none;
+      padding: 20px 30px;
+      /* margin-bottom: 30px; */
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    button:active, button:focus {
+      background-color: white;
+      color: black;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- thanks https://davidwalsh.name/browser-camera -->
+  <video id="video" autoplay></video>
+  <div class="top">
+    <h1>NGL-measure</h1>
+    <p>alpha 0.3 210205</p>
+  </div>
+  <div class="bottom">
+    <p>Measure SSS using camera. Classify image into three state {high/medium/low}. All the processing is done on the client side. Private, secure and fast.</p>
+    <button id="snap">Snap Photo</button>
+  </div>
+  <canvas id="canvas" width="640" height="480" style="z-index: 0;"></canvas>
+  <script type="text/javascript">
+    // Grab elements, create settings, etc.
+    var video = document.getElementById('video');
+
+    // Get access to the camera!
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      // Not adding `{ audio: true }` since we only want video now
+      navigator.mediaDevices.getUserMedia({
+        video: true
+      }).then(function(stream) {
+        //video.src = window.URL.createObjectURL(stream);
+        video.srcObject = stream;
+        video.play();
+      });
+    }
+
+    // Elements for taking the snapshot
+    var canvas = document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+    var video = document.getElementById('video');
+
+    // Trigger photo take
+    document.getElementById("snap").addEventListener("click", function() {
+      context.drawImage(video, 0, 0, 640, 480);
+    });
+  </script>
+</body>
+
+</html>

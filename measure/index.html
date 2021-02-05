@@ -1,58 +1,350 @@
 <!DOCTYPE html>
 <!-- from https://codelabs.developers.google.com/codelabs/tensorflowjs-teachablemachine-codelab/index.html#6 -->
 <html>
-  <head>
-    <!-- Load the latest version of TensorFlow.js -->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
-    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
 
-    <!-- <style media="screen">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+  <script src="utils.js"></script>
+  <!-- <script src="opencv/facedetection.js"></script> -->
+  <!-- <script src="opencv/opencv3_4.js"></script> -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
+  <!-- <script src="croppie.min.js"></script>
+  <link rel="stylesheet" href="croppie.css" />
+  <script src="face-api.min.js"></script>
+  <script src="smartcrop.js"></script> -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+  <!-- <style media="screen">
       html, body {background-color: black; color: white;}
       .title, .subtitle {color: white;}
     </style> -->
-  </head>
-  <body>
-    <section class="section">
-      <div class="container">
-        <h1 class="title">ngl-measure alpha0.1</h1>
-        <p>Measure SSS using camera. Alpha version. Classify image into three state {high/medium/low}.</p>
-        <p>All the processing is done on the client side, i.e., without sending images to a server.</p>
-        <br><br>
+</head>
 
-        <h2 class="subtitle">a. realtime measurement</h2>
-        <video autoplay playsinline muted id="webcam" width="255" height="255"></video>
-        <div id="console"></div>
-        <br><br>
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">ngl-measure alpha 0.2 210203</h1>
+      <p>Measure SSS using camera. Classify image into three state {high/medium/low}.</p>
+      <p>All the processing is done on the client side, i.e., without sending images to a server.</p>
+      <br><br>
 
-        <h2 class="subtitle">b. measure from image #TODO</h2>
-        <!-- load phone camera -->
-        <input type="file" accept="image/*" capture="camera">
-        <!-- <input type="file" accept="video/*" capture="camera"> -->
+      <h2 class="subtitle">a. realtime measurement</h2>
+      <!-- <video autoplay playsinline muted id="webcam" width="224" height="224"></video> -->
+      <div id="console"></div>
+      <br><br>
 
-        <!-- <h2 class="subtitle">Classifier image</h2>
-        <p>based on https://towardsdatascience.com/deploying-an-image-classifier-using-javascript-84da1480b3a4</p>
-        <img src="img-test.png" width="240" height="auto"> -->
+      <h2 class="subtitle">b. measure from static image</h2>
+      <!-- <input type="file" accept="image/*" capture="camera"> -->
+      <!-- <input type="file" accept="video/*" capture="camera"> -->
 
-        <h1>Webcam Image classification using MobileNet</h1>
-          <p>
-            The MobileNet model labeled this as <span id="result">...</span>
-            <br />with a confidence of <span id="probability">...</span>.
-          </p>
-          <video id="video" width="640" height="480" autoplay></video>
-          <script src="sketch.js"></script>
-<!--
-        <script>
-        console.log('ml5 version:', ml5.version);
-        const classifier = ml5.imageClassifier('path/to/custom/model.json', modelReady);
-        </script> -->
+      <img id="imgcanvas" src="test-data/high2.png"></img>
+      <div id="result"></div>
+      <div id="resultJSON" style="font-size: 0.8em;"></div>
+      <br><br>
 
-        <!-- Load index.js after the content of the page -->
-        <!-- <script src="classifier.js"></script> -->
-        <script src="index.js"></script>
-      </div>
-    </section>
-  </body>
+      <h2 class="subtitle">b2. measure from ANY static image with autocropping</h2>
+      <img id="imageRaw" src="test-data/face1raw.png"></img>
+      <canvas id="imageCropped"></canvas>
+      <canvas id="imageInit"></canvas>
+      <canvas id="imageBoundingBox"></canvas>
+
+      <!-- <script>
+        // https://www.reddit.com/r/TensorFlowJS/comments/isdvbn/how_do_i_crop_a_detected_face_from_blaze_face/
+        async function detectAndCropFace() {
+          const blazefaceModel = await blazeface.load();
+          const imageToCrop = document.getElementById('imageToCrop');
+          // const imageToCrop = 'test-data/face1raw.png'; // takhle to nejde
+          console.log('Image to crop: ', imageToCrop);
+          const returnTensors = false;
+          const predictions = await blazefaceModel.estimateFaces(imageToCrop, returnTensors);
+          console.log('Prediction results: ', predictions[0]);
+          console.log('Top left: ', predictions[0].topLeft);
+
+
+          //
+          // if (predictions.length > 0) {
+          //   // save predictions to test_face_extract folder
+          //   const [y1, x1] = predictions[0].topLeft;
+          //   const [y2, x2] = predictions[0].bottomRight;
+          //
+          //   const x1s = Math.floor(x1 * scaleX);
+          //   const y1s = Math.floor(y1 * scaleY);
+          //   const x2s = Math.floor(x2 * scaleX);
+          //   const y2s = Math.floor(y2 * scaleY);
+          //
+          //   const faceTensor = originalTensor.slice([x1s, y1s], [x2s - x1s, y2s - y1s]);
+          //   const data = await tf.node.encodeJpeg(faceTensor);
+          //
+          //   fs.writeFileSync(`./test_face_extract/F${index}.jpeg`, data);
+        }
+
+        detectAndCropFace();
+      </script> -->
+      <!-- <script>
+        // https://www.reddit.com/r/TensorFlowJS/comments/isdvbn/how_do_i_crop_a_detected_face_from_blaze_face/
+        async function main2() {
+          const model = await blazeface.load();
+          //
+          // // Convert images into tensors
+          // const IMAGE_SIZE = 224;
+          // const img = tf.browser.fromPixels(imageToCrop).toFloat();
+          // const offset = tf.scalar(127.5);
+          // // Normalize an image from [0, 255] to [-1, 1]
+          // const normalized = img.sub(offset).div(offset);
+          // // Change the image size
+          // let resized = normalized;
+          // if (img.shape[0] !== IMAGE_SIZE || img.shape[1] !== IMAGE_SIZE) {
+          //   const alignCorners = true;
+          //   resized = tf.image.resizeBilinear(
+          //     normalized, [IMAGE_SIZE, IMAGE_SIZE], alignCorners,
+          //   );
+          // }
+          // // Change the shape of a tensor to meet the model requirements
+          // const imageTensor = resized.reshape([-1, IMAGE_SIZE, IMAGE_SIZE, 3]);
+          // console.log('Image tensor result: ', imageTensor);
+
+          const imageToCrop = document.getElementById('imageToCrop');
+          console.log('Image to crop: ', imageToCrop);
+          const returnTensors = false;
+          const predictions = await model.estimateFaces(imageToCrop, returnTensors);
+          console.log('Prediction results: ', predictions[0]);
+          console.log('Top left: ', predictions[0].topLeft);
+          if (predictions.length > 0) {
+            // save predictions to test_face_extract folder
+            predictions.forEach(async (prediction, index) => {
+              const [y1, x1] = prediction.topLeft;
+              const [y2, x2] = prediction.bottomRight;
+
+              const x1s = Math.floor(x1 * scaleX);
+              const y1s = Math.floor(y1 * scaleY);
+              const x2s = Math.floor(x2 * scaleX);
+              const y2s = Math.floor(y2 * scaleY);
+
+              const faceTensor = originalTensor.slice([x1s, y1s], [x2s - x1s, y2s - y1s]);
+              const data = await tf.node.encodeJpeg(faceTensor);
+
+              fs.writeFileSync(`./test_face_extract/F${index}.jpeg`, data);
+            })
+          }
+        }
+        main2();
+      </script> -->
+
+      <!-- <script>
+        // const input = document.getElementById('imageToCrop');
+        // const detection = faceapi.detectAllFaces(input).withFaceLandmarks().withFaceDescriptors();
+        // console.log('faceapi result: ', detection);
+        // This function extract a face from video frame with giving bounding box and display result into outputimage
+
+        // let outputImage = document.getElementById('imageToCrop')
+        // async function extractFaceFromBox(outputImage, box) {
+        //   const regionsToExtract = [
+        //     new faceapi.Rect(box.x, box.y, box.width, box.height)
+        //   ]
+        //   let faceImages = await faceapi.extractFaces(outputImage, regionsToExtract)
+        //   if (faceImages.length == 0) {
+        //     console.log('Face not found')
+        //   } else {
+        //     faceImages.forEach(cnv => {
+        //       outputImage.src = cnv.toDataURL();
+        //     })
+        //     console.log('FaceAPI done')
+        //   }
+        // }
+        // extractFaceFromBox();
+      </script> -->
+
+      <!-- <script type="text/javascript">
+      // ********** CROP IMAGE USING OPENCV EXPERIMENT
+      const utils = new Utils('errorMessage');
+      const imageUsed = document.getElementById('imageRaw').getAttribute('src');
+      console.log(imageUsed);
+
+      function cropImage() {
+      utils.loadImageToCanvas(imageUsed, 'imageInit')
+      let faceCascadeFile = 'haarcascade_frontalface_default.xml';
+      utils.createFileFromUrl(faceCascadeFile, faceCascadeFile, () => {
+        console.log('cascade ready to load.');
+
+        let src = cv.imread('imageRaw');
+        let gray = new cv.Mat();
+        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+        let faces = new cv.RectVector();
+        let faceCascade = new cv.CascadeClassifier();
+        // load pre-trained classifiers
+        faceCascade.load(faceCascadeFile);
+        // detect faces
+        let msize = new cv.Size(0, 0);
+        faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, msize, msize);
+        console.dir(faceCascadeFile)
+        console.log(faces.size());
+        console.log(faces)
+
+        let roiGray = gray.roi(faces.get(0));
+        let roiSrc = src.roi(faces.get(0));
+        let point1 = new cv.Point(faces.get(0).x, faces.get(0).y);
+        let point2 = new cv.Point(faces.get(0).x + faces.get(0).width,
+          faces.get(0).y + faces.get(0).height);
+        console.log('src: ', src);
+        console.log('point1: ', point1);
+        console.log('point2: ', point2);
+        cv.rectangle(src, point1, point2, [255, 0, 0, 255]); // cv2.rectangle(image, start_point, end_point, color, thickness)
+        roiGray.delete();
+        roiSrc.delete();
+        let rectX = point1.x + 10;
+        let rectY = point1.y + 10;
+        let rectSize = (point2.x - point1.x) - 20;
+
+        let dst = new cv.Mat();
+        let rect = new cv.Rect(rectX, rectY, rectSize, rectSize);
+        dst = src.roi(rect);
+        cv.imshow('imageCropped', dst);
+        cv.imshow('imageBoundingBox', src);
+        src.delete();
+        gray.delete();
+        faceCascade.delete();
+      });}
+
+      utils.loadOpenCv();
+      setTimeout(cropImage(), 5000)
+
+      </script> -->
+      <script>
+        // @ ANT example https://www.alibabacloud.com/blog/tensorflow-js-helps-recognize-large-quantities-of-icons-in-milliseconds_597000
+
+        // this is used to match the prediction results and labels
+        function findIndicesOfMax(inp, count) {
+          const outp = [];
+          for (let i = 0; i < inp.length; i += 1) {
+            outp.push(i); // add index to output array
+            if (outp.length > count) {
+              outp.sort((a, b) => inp[b] - inp[a]); // descending sort the output array
+              outp.pop(); // remove the last index (index of smallest element in output array)
+            }
+          }
+          return outp;
+        }
+
+        async function classifyStaticImage() {
+          // ********** LOAD AND INIT
+          const model5 = await tf.loadGraphModel('210126a_TFjs/model.json');
+          const IMAGE_SIZE = 224;
+          const LABELS = ['high', 'low', 'medium'];
+
+
+          // ********** CROP INPUT IMAGE
+          const model = await blazeface.load();
+          //
+          // // Convert images into tensors
+          // const IMAGE_SIZE = 224;
+          // const img = tf.browser.fromPixels(imageToCrop).toFloat();
+          // const offset = tf.scalar(127.5);
+          // // Normalize an image from [0, 255] to [-1, 1]
+          // const normalized = img.sub(offset).div(offset);
+          // // Change the image size
+          // let resized = normalized;
+          // if (img.shape[0] !== IMAGE_SIZE || img.shape[1] !== IMAGE_SIZE) {
+          //   const alignCorners = true;
+          //   resized = tf.image.resizeBilinear(
+          //     normalized, [IMAGE_SIZE, IMAGE_SIZE], alignCorners,
+          //   );
+          // }
+          // // Change the shape of a tensor to meet the model requirements
+          // const imageTensor = resized.reshape([-1, IMAGE_SIZE, IMAGE_SIZE, 3]);
+          // console.log('Image tensor result: ', imageTensor);
+
+          const imageToCrop = document.getElementById('imgcanvas');
+          console.log('Image to crop: ', imageToCrop);
+          const returnTensors = false;
+          const resultFace = await model.estimateFaces(imageToCrop, returnTensors);
+          console.log('Prediction results: ', resultFace[0]);
+          console.log('Top left: ', resultFace[0].topLeft);
+
+          // ****** ⭐️⭐️⭐️ HERE I NEED TO TAKE THE CROPPED IMAGE FROM BLAZEFACE AND FEED IT INTO CLASSIFIER
+          // CROPPING FROM https://www.reddit.com/r/TensorFlowJS/comments/isdvbn/how_do_i_crop_a_detected_face_from_blaze_face/ doesnt work
+          if (resultFace.length > 0) {
+            // save predictions to test_face_extract folder
+            resultFace.forEach(async (resultFace, index) => {
+              const [y1, x1] = resultFace.topLeft;
+              const [y2, x2] = resultFace.bottomRight;
+
+              const x1s = Math.floor(x1 * scaleX);
+              const y1s = Math.floor(y1 * scaleY);
+              const x2s = Math.floor(x2 * scaleX);
+              const y2s = Math.floor(y2 * scaleY);
+
+              const faceTensor = originalTensor.slice([x1s, y1s], [x2s - x1s, y2s - y1s]);
+              const data = await tf.node.encodeJpeg(faceTensor);
+
+              fs.writeFileSync(`./test_face_extract/F${index}.jpeg`, data);
+            })
+          }
+
+
+          // ********** MAKE TENSOR FROM IMAGE AND PREPROCESS
+          // Convert images into tensors
+          const img = tf.browser.fromPixels(imgcanvas).toFloat();
+          const offset = tf.scalar(127.5);
+          // Normalize an image from [0, 255] to [-1, 1]
+          const normalized = img.sub(offset).div(offset);
+          // Change the image size
+          let resized = normalized;
+          if (img.shape[0] !== IMAGE_SIZE || img.shape[1] !== IMAGE_SIZE) {
+            const alignCorners = true;
+            resized = tf.image.resizeBilinear(
+              normalized, [IMAGE_SIZE, IMAGE_SIZE], alignCorners,
+            );
+          }
+          // Change the shape of a tensor to meet the model requirements
+          const batched = resized.reshape([-1, IMAGE_SIZE, IMAGE_SIZE, 3]);
+
+
+          // ********** RUN INFERENCE
+          let pred = model5.predict(batched).squeeze().arraySync();
+          // console.log(pred);
+          // Find the categories with the highest matching degree
+          const predictions = findIndicesOfMax(pred, 3).map(i => ({
+            className: LABELS[i],
+            confidence: pred[i],
+          }));
+
+          // ********** PRINT THE RESULTS
+          console.log('Inference results: ', predictions);
+          // find and print object with highest confidence score
+          var res = Math.max.apply(Math, predictions.map(function(o) {
+            return o.confidence;
+          }))
+          var obj = predictions.find(function(o) {
+            return o.confidence == res;
+          })
+          console.log('Top prediction: ', obj);
+          document.getElementById('result').innerText = `prediction: ${obj.className}\n confidence: ${obj.confidence}`;
+          // print detailed results
+          document.getElementById('resultJSON').innerText = 'Detailed results:\n' + JSON.stringify(predictions);
+          // document.getElementById('result').innerText = `prediction: ${predictions[0].className}\n confidence: ${predictions[0].confidence}`;
+        }
+        classifyStaticImage();
+      </script>
+      <script>
+        // google offical @ https://github.com/tensorflow/tfjs/tree/master/tfjs-converter#step-2-loading-and-running-in-the-browser
+        async function goog() {
+          const model3 = await tf.loadGraphModel('210126a_TFjs/model.json');
+          const resultGoog = await model3.predict(tf.browser.fromPixels(imgcanvas).resizeNearestNeighbor([224, 224]).toFloat().expandDims()).dataSync();
+          // console.log('Google implementation prediction result: ', resultGoog);
+        }
+        goog();
+      </script>
+
+      <!-- <script src="opencv/facedetection.js" type="text/javascript"></script>
+      <script src="opencv/utils.js" type="text/javascript"></script> -->
+      <!-- <script src="face-api.min.js"></script>
+      <script src="smartcrop.js"></script> -->
+      <!-- <script src="index.js"></script> -->
+    </div>
+  </section>
+</body>
+
 </html>

@@ -35,9 +35,3 @@ async function app() {
 }
 
 app();
-
-// // custom model https://www.tensorflow.org/js/tutorials/conversion/import_keras
-// const model = await tf.loadLayersModel('model.json');
-// console.log('Init');
-// const example = tf.fromPixels(webcamElement);  // for example
-// const prediction = model.predict(example);
