@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
   <script src="utils.js"></script>
   <script src="opencv3_4.js" type="text/javascript"></script>
+  <script src="https://kit.fontawesome.com/b7835224ad.js" crossorigin="anonymous"></script>
   <title></title>
   <style>
     body,html {
@@ -107,6 +108,8 @@
       opacity: 0;
       cursor: pointer;
     }
+    .none {display: none;}
+    .loading {display: inline; background-color: yellow;}
   </style>
 </head>
 
@@ -128,7 +131,8 @@
     <canvas id="imageCaptured" width="640" height="480" style="z-index: 10; display: none;"></canvas>
     <p>Measure SSS using camera. Classify image into three states {high/medium/low}. All the processing is done on the client side. Private, secure and fast.</p>
     <button id="snap">Snap Photo</button>
-    <button id="useCamera" style="display: none;">Back to Camera</button>
+    <button id="snapLoading" class="none"><i class="fas fa-atom fa-spin"></i> Calculating</button>
+    <button id="useCamera" class="none">Back to Camera</button>
     <div class="fakeInput"><button>Open File</button><input type="file" id="imageInput" accept="image/*"/></div>
   </div>
 
@@ -136,6 +140,7 @@
     // https://educity.app/web-development/how-to-upload-and-draw-an-image-on-html-canvas
     let imgInput = document.getElementById('imageInput');
     var myCanvas = document.getElementById("imageInputCanvas"); // Creates a canvas object
+
     imgInput.addEventListener('change', function(e) {
       if (e.target.files) {
         let imageFile = e.target.files[0]; //here we get the image file
@@ -164,6 +169,7 @@
   </script>
 
   <script type="text/javascript">
+    var snapButton = document.getElementById("snap");
     var video = document.getElementById('video');
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({
@@ -179,7 +185,8 @@
     var video = document.getElementById('video');
     // Trigger photo take
     document.getElementById("snap").addEventListener("click", function() {
-      myCanvas.className = 'inputCanvasHidden';
+      myCanvas.className = 'inputCanvasHidden'; // reset canvas if previously used by uploading to input
+      document.getElementById('snap').className = "none";document.getElementById('snapLoading').className = "loading"; // start calc anitmation
       context.drawImage(video, 0, 0); //context.drawImage(video, 0, 0, 640, 480);
       cropImage('imageCaptured');
       classifyStaticImage();
@@ -244,7 +251,7 @@
   async function classifyStaticImage() {
     // ********** LOAD AND INIT
     const imageToClassify = imageCropped;
-    const model5 = await tf.loadGraphModel('210126a_TFjs/model.json');
+    const model = await tf.loadGraphModel('210126a_TFjs/model.json');
     const IMAGE_SIZE = 224;
     const LABELS = ['high', 'low', 'medium'];
 
@@ -280,7 +287,7 @@
 
 
     // ********** RUN INFERENCE
-    let pred = model5.predict(batched).squeeze().arraySync();
+    let pred = model.predict(batched).squeeze().arraySync();
     // console.log(pred);
     // Find the categories with the highest matching degree
     const predictions = findIndicesOfMax(pred, 3).map(i => ({
@@ -303,10 +310,8 @@
     // print detailed results
     document.getElementById('resultJSON').innerText = 'Detailed results:\n' + JSON.stringify(predictions); //JSON.stringify(predictions, null, 4)
     // document.getElementById('result').innerText = `prediction: ${predictions[0].className}\n confidence: ${predictions[0].confidence}`;
-  }
-
-  function reset() {
-
+    // stop calc anitmation
+    document.getElementById('snap').className = ""; document.getElementById('snapLoading').className = "none";
   }
   </script>
 
