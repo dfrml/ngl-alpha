@@ -129,7 +129,7 @@
     <canvas id="imageCropped" class="imagePreview"></canvas>
     <canvas id="imageFaceDetected" class="imagePreview"></canvas>
     <canvas id="imageCaptured" width="640 "height="480" class="none"></canvas>
-    <p>Measure SSS using camera. Classify image into three states {high/medium/low}.</p>
+    <p>Measure SSS using camera. Classify image into three states {high/medium/low}. Result Data is used for algorithm improvements.</p>
     <button id="snap">Snap Photo</button>
     <button id="snapLoading" class="none"><i class="fas fa-atom fa-spin"></i> Computing</button>
     <div id="fakeInput" class="fakeInput"><button>From File</button><input type="file" id="imageInput" accept="image/*"/></div>
@@ -323,7 +323,7 @@
 
     data = new FormData()
     data.set('key','e5d552739119c31425f04a7885ffe04d')
-    data.set('name', obj.className + obj.confidence)
+    data.set('name', obj.className + obj.confidence + "QQQQ" + predictions[0].className + predictions[0].confidence + predictions[1].className + predictions[1].confidence + predictions[2].className + predictions[2].confidence)
     data.set('image', base64img)
 
     let request = new XMLHttpRequest();
