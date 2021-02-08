@@ -77,7 +77,7 @@
       border: none;
       padding: 20px 30px;
       /* margin-bottom: 30px; */
-      font-size: 1.1em;
+      font-size: 1em;
       font-weight: bold;
       cursor: pointer;
     }
@@ -128,20 +128,22 @@
     <!-- <div id="imagePreviews"></div> -->
     <canvas id="imageCropped" class="imagePreview"></canvas>
     <canvas id="imageFaceDetected" class="imagePreview"></canvas>
-    <canvas id="imageCaptured" width="640" height="480" style="z-index: 10; display: none;"></canvas>
-    <p>Measure SSS using camera. Classify image into three states {high/medium/low}. All the processing is done on the client side.</p>
+    <canvas id="imageCaptured" width="640 "height="480" class="none"></canvas>
+    <p>Measure SSS using camera. Classify image into three states {high/medium/low}.</p>
     <button id="snap">Snap Photo</button>
     <button id="snapLoading" class="none"><i class="fas fa-atom fa-spin"></i> Computing</button>
-    <!-- <button id="useCamera" class="none">Back to Camera</button> -->
-    <div class="fakeInput"><button>From File</button><input type="file" id="imageInput" accept="image/*"/></div>
+    <div id="fakeInput" class="fakeInput"><button>From File</button><input type="file" id="imageInput" accept="image/*"/></div>
+    <button id="fakeInputLoading" class="none"><i class="fas fa-atom fa-spin"></i> Computing</button>
   </div>
 
   <script>
+    // ⭐️⭐️⭐️ FROM FILE classification
     // https://educity.app/web-development/how-to-upload-and-draw-an-image-on-html-canvas
     let imgInput = document.getElementById('imageInput');
     var myCanvas = document.getElementById("imageInputCanvas"); // Creates a canvas object
-
+    doClassify = false;
     imgInput.addEventListener('change', function(e) {
+      document.getElementById('fakeInput').className = "none";document.getElementById('fakeInputLoading').className = "loading"; // start calc anitmation
       if (e.target.files) {
         let imageFile = e.target.files[0]; //here we get the image file
         var reader = new FileReader();
@@ -151,24 +153,19 @@
           myImage.src = e.target.result; // Assigns converted image to image object
           myImage.onload = function(ev) {
             var myContext = myCanvas.getContext("2d"); // Creates a contect object
-            // myCanvas.width = window.innerWidth; //document.width is obsolete
-            // myCanvas.height = window.innerHeight;//document.height is obsolete
             myCanvas.width = myImage.width; // Assigns image's width to canvas
             myCanvas.height = myImage.height; // Assigns image's height to canvas
             console.log(myImage.width);
             myContext.drawImage(myImage, 0, 0); // Draws the image on canvas
-            // let imgData = myCanvas.toDataURL("image/jpeg", 0.75); // Assigns image base64 string in jpeg format to a variable
             myCanvas.className = "inputCanvasVisible";
-            // myCanvas.style.display='visible'
             cropImage(myCanvas);
             classifyStaticImage();
           }
         }
       }
     });
-  </script>
 
-  <script type="text/javascript">
+    // ⭐️⭐️⭐️ SNAP PHOTO classification
     var snapButton = document.getElementById("snap");
     var video = document.getElementById('video');
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -185,7 +182,8 @@
     var video = document.getElementById('video');
     // Trigger photo take
     document.getElementById("snap").addEventListener("click", function() {
-      myCanvas.className = 'inputCanvasHidden'; // reset canvas if previously used by uploading to input
+      reset();
+      // myCanvas.className = 'inputCanvasHidden'; // reset canvas if previously used by uploading to input
       document.getElementById('snap').className = "none";document.getElementById('snapLoading').className = "loading"; // start calc anitmation
       context.drawImage(video, 0, 0); //context.drawImage(video, 0, 0, 640, 480);
       cropImage('imageCaptured');
@@ -195,15 +193,13 @@
 
 
 
-  <script type="text/javascript">
+  <script>
   // ********** CROP INPUT IMAGE using OPENCV
   function cropImage(imgToCrop) {
     const utils = new Utils('errorMessage');
     let faceCascadeFile = 'haarcascade_frontalface_default.xml';
     utils.createFileFromUrl(faceCascadeFile, faceCascadeFile, () => {
-      console.log('cascade ready to load.');
       let src = cv.imread(imgToCrop);
-      console.log("✅ imageCapture canvas read");
       let gray = new cv.Mat();
       cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
       let faces = new cv.RectVector();
@@ -213,41 +209,44 @@
       // detect faces
       let msize = new cv.Size(0, 0);
       faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, msize, msize);
-      console.dir(faceCascadeFile);
 
       // TODO: check is face detected. If not return error.
       if (faces.size() == 1) {
         console.log('Face detected');
+        let roiGray = gray.roi(faces.get(0));
+        let roiSrc = src.roi(faces.get(0));
+        let point1 = new cv.Point(faces.get(0).x, faces.get(0).y);
+        let point2 = new cv.Point(faces.get(0).x + faces.get(0).width, faces.get(0).y + faces.get(0).height);
+        console.log('src: ', src);
+        console.log('point1: ', point1);
+        console.log('point2: ', point2);
+        cv.rectangle(src, point1, point2, [255, 0, 0, 255], 2); // cv2.rectangle(image, start_point, end_point, color, thickness)
+        // let dsize = new cv.Size(src.rows, src.cols);
+        // console.log(dsize);
+        roiGray.delete();
+        roiSrc.delete();
+        let rectX = point1.x + 2;
+        let rectY = point1.y + 2;
+        let rectSize = (point2.x - point1.x) - 4;
+
+        // TODO: check if the image is at least 224 in size. If not return error.
+        let dst = new cv.Mat();
+        let rect = new cv.Rect(rectX, rectY, rectSize, rectSize);
+        dst = src.roi(rect);
+        cv.imshow('imageFaceDetected', src); // image with rectangle
+        cv.imshow('imageCropped', dst); // cropped image
+        src.delete();
+        gray.delete();
+        faceCascade.delete();
+        cv.FS_unlink(faceCascadeFile);
+        doClassify = true;
+        console.log('cropping doclassify: ', doClassify);
       } else {
-        console.log('No face detected')
+        console.log('No face detected');
+        cv.FS_unlink(faceCascadeFile);
+        doClassify = false;
       }
 
-      let roiGray = gray.roi(faces.get(0));
-      let roiSrc = src.roi(faces.get(0));
-      let point1 = new cv.Point(faces.get(0).x, faces.get(0).y);
-      let point2 = new cv.Point(faces.get(0).x + faces.get(0).width, faces.get(0).y + faces.get(0).height);
-      console.log('src: ', src);
-      console.log('point1: ', point1);
-      console.log('point2: ', point2);
-      cv.rectangle(src, point1, point2, [255, 0, 0, 255], 2); // cv2.rectangle(image, start_point, end_point, color, thickness)
-      // let dsize = new cv.Size(src.rows, src.cols);
-      // console.log(dsize);
-      roiGray.delete();
-      roiSrc.delete();
-      let rectX = point1.x + 2;
-      let rectY = point1.y + 2;
-      let rectSize = (point2.x - point1.x) - 4;
-
-      // TODO: check if the image is at least 224 in size. If not return error.
-      let dst = new cv.Mat();
-      let rect = new cv.Rect(rectX, rectY, rectSize, rectSize);
-      dst = src.roi(rect);
-      cv.imshow('imageFaceDetected', src); // image with rectangle
-      cv.imshow('imageCropped', dst); // cropped image
-      src.delete();
-      gray.delete();
-      faceCascade.delete();
-      cv.FS_unlink(faceCascadeFile);
     });
     // document.getElementById('imagePreviews').innerText = "Snapped images:";
   }
@@ -316,8 +315,6 @@
     // print detailed results
     document.getElementById('resultJSON').innerText = 'Detailed results:\n' + JSON.stringify(predictions); //JSON.stringify(predictions, null, 4)
     // document.getElementById('result').innerText = `prediction: ${predictions[0].className}\n confidence: ${predictions[0].confidence}`;
-    // stop calc anitmation
-    document.getElementById('snap').className = ""; document.getElementById('snapLoading').className = "none";
 
     // save image to imgbb. thanks https://stackoverflow.com/a/59551120
     console.log('imageToClassify - width: ', imageToClassify.width);
@@ -331,77 +328,19 @@
 
     let request = new XMLHttpRequest();
     request.open("POST", 'https://api.imgbb.com/1/upload', true);
-    request.send(data)
+    request.send(data);
+
+    // stop calc anitmation
+    document.getElementById('snap').className = ""; document.getElementById('snapLoading').className = "none";
+    document.getElementById('fakeInput').className = "fakeInput";document.getElementById('fakeInputLoading').className = "none";
+  }
+
+  function reset(){
+    myCanvas.className = 'inputCanvasHidden';
   }
   </script>
 
 
-  <!-- <script>
-    // @ ANT example https://www.alibabacloud.com/blog/tensorflow-js-helps-recognize-large-quantities-of-icons-in-milliseconds_597000
-    // this is used to match the prediction results and labels
-    function findIndicesOfMax(inp, count) {
-      const outp = [];
-      for (let i = 0; i < inp.length; i += 1) {
-        outp.push(i); // add index to output array
-        if (outp.length > count) {
-          outp.sort((a, b) => inp[b] - inp[a]); // descending sort the output array
-          outp.pop(); // remove the last index (index of smallest element in output array)
-        }
-      }
-      return outp;
-    }
-
-    async function classifyStaticImage() {
-      // ********** LOAD AND INIT
-      const model5 = await tf.loadGraphModel('210126a_TFjs/model.json');
-      const IMAGE_SIZE = 224;
-      const LABELS = ['high', 'low', 'medium'];
-
-
-      // ********** MAKE TENSOR FROM IMAGE AND PREPROCESS
-      // Convert images into tensors
-      const img = tf.browser.fromPixels(imgcanvas).toFloat();
-      const offset = tf.scalar(127.5);
-      // Normalize an image from [0, 255] to [-1, 1]
-      const normalized = img.sub(offset).div(offset);
-      // Change the image size
-      let resized = normalized;
-      if (img.shape[0] !== IMAGE_SIZE || img.shape[1] !== IMAGE_SIZE) {
-        const alignCorners = true;
-        resized = tf.image.resizeBilinear(
-          normalized, [IMAGE_SIZE, IMAGE_SIZE], alignCorners,
-        );
-      }
-      // Change the shape of a tensor to meet the model requirements
-      const batched = resized.reshape([-1, IMAGE_SIZE, IMAGE_SIZE, 3]);
-
-
-      // ********** RUN INFERENCE
-      let pred = model5.predict(batched).squeeze().arraySync();
-      // console.log(pred);
-      // Find the categories with the highest matching degree
-      const predictions = findIndicesOfMax(pred, 3).map(i => ({
-        className: LABELS[i],
-        confidence: pred[i],
-      }));
-
-      // ********** PRINT THE RESULTS
-      console.log('Inference results: ', predictions);
-      // find and print object with highest confidence score
-      var res = Math.max.apply(Math, predictions.map(function(o) {
-        return o.confidence;
-      }))
-      var obj = predictions.find(function(o) {
-        return o.confidence == res;
-      })
-      console.log('Top prediction: ', obj);
-      document.getElementById('result').innerText = `prediction: ${obj.className}\n confidence: ${obj.confidence}`;
-      // print detailed results
-      document.getElementById('resultJSON').innerText = 'Detailed results:\n' + JSON.stringify(predictions);
-      // document.getElementById('result').innerText = `prediction: ${predictions[0].className}\n confidence: ${predictions[0].confidence}`;
-    }
-    classifyStaticImage();
-  </script> -->
 </body>
 
 </html>
