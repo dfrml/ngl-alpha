@@ -7,5 +7,5 @@ Thumbs.db
 datasets/**
 experiments/**
 logs/**
-resources/**
-xarchive/**
+resources
+xarchive
