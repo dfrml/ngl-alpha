@@ -1,0 +1,112 @@
+body,
+html {
+    padding: 0;
+    margin: 0;
+    font-family: Montserrat, Verdana;
+    color: white;
+    background-color: black;
+    overflow: hidden;
+}
+
+video, .video {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 0;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+}
+
+.inputCanvasVisible {
+    position: fixed;
+    z-index: 1;
+    /* border-radius: 100px; */
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+}
+
+.top {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 25px;
+    z-index: 2;
+    /* display: flex; */
+    /* justify-content: left; */
+    /* background-color: red; */
+}
+
+.top p,
+.bottom p {
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+
+.bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 25px;
+    z-index: 2;
+    /* display: flex;
+      justify-content: center; */
+    /* background-color: red; */
+}
+
+button,
+.button {
+    background-color: white;
+    /* opacity: 0.7; */
+    color: black;
+    /* width: 100%; */
+    border-radius: 30px;
+    border: none;
+    padding: 20px 30px;
+    /* margin-bottom: 30px; */
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:active,
+button:focus {
+    background-color: white;
+    color: black;
+}
+
+.imagePreview {
+    z-index: 10;
+    /* border-radius: 100px; */
+    height: 100px;
+    margin-right: 10px;
+}
+
+.fakeInput {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.fakeInput input[type=file] {
+    font-size: 100px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.none {
+    display: none;
+}
+
+.loading {
+    display: inline;
+    background-color: yellow;
+}
