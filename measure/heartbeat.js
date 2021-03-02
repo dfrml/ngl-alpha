@@ -17,7 +17,7 @@ class Heartbeat {
   constructor(webcamId, canvasId, classifierPath, targetFps, windowSize, rppgInterval) {
     this.webcamId = webcamId;
     this.canvasId = canvasId,
-      this.classifierPath = classifierPath;
+    this.classifierPath = classifierPath;
     this.streaming = false;
     this.faceValid = false;
     this.targetFps = targetFps;
@@ -528,5 +528,5 @@ class Heartbeat {
   }
 }
 
-let hr = new Heartbeat("webcam", "canvas", HAARCASCADE_URI, 30, 6, 250);
+let hr = new Heartbeat("webcam", "canvas", HAARCASCADE_URI, 10, 6, 250);
 hr.init();
